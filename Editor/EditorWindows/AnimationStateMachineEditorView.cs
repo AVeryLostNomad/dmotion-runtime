@@ -47,6 +47,11 @@ namespace DMotion.Editor
         internal StateMachineAsset StateMachine => model.StateMachineAsset;
         internal VisualTreeAsset StateNodeXml => model.StateNodeXml;
 
+        public SingleClipPreview SingleClipPreview;
+        public bool ShouldDrawSingleClipPreview;
+        internal AnimationEventsPropertyDrawer lastUsedDrawer;
+        private StateNodeView lastSelectedNode;
+
         public AnimationStateMachineEditorView()
         {
             var gridBg = new GridBackground();
@@ -56,6 +61,11 @@ namespace DMotion.Editor
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
+
+            SingleClipPreview = new SingleClipPreview(null);
+            if (model.StateMachineAsset != null)
+                SingleClipPreview.GameObject = model.StateMachineAsset.ClipPreviewGameObject;
+            SingleClipPreview.Initialize();
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -76,7 +86,19 @@ namespace DMotion.Editor
                 {
                     if (el is StateNodeView stateView)
                     {
+                        if (stateView.State.Clips != null && stateView.State.Clips.Any())
+                        {
+                            foreach (var animationClipAsset in stateView.State.Clips)
+                                DeleteClip(animationClipAsset);
+                        }
+                        
                         DeleteState(stateView.State);
+
+                        if (lastSelectedNode == el)
+                        {
+                            model.InspectorView.ClearInspector();
+                            lastSelectedNode = null;
+                        }
                     }
                     else if (el is TransitionEdge transition)
                     {
@@ -110,6 +132,11 @@ namespace DMotion.Editor
         private void DeleteState(AnimationStateAsset state)
         {
             model.StateMachineAsset.DeleteState(state);
+        }
+
+        private void DeleteClip(AnimationClipAsset clipAsset)
+        {
+            model.StateMachineAsset.DeleteClipAsset(clipAsset);
         }
 
         private void DeleteAllOutTransitions(AnimationStateAsset fromState, AnimationStateAsset toState)
@@ -201,21 +228,34 @@ namespace DMotion.Editor
             stateToView.Add(state, stateView);
 
             stateView.StateSelectedEvent += OnStateSelected;
+
+            // Select the newly created state
+            OnStateSelected(stateView);
         }
 
         private void OnStateSelected(StateNodeView obj)
         {
             var inspectorModel = new AnimationStateInspectorModel
             {
-                StateView = obj
+                StateView = obj,
             };
+            if (obj != lastSelectedNode)
+            {
+                ShouldDrawSingleClipPreview = false;
+                lastSelectedNode = obj;
+            }
+
             switch (obj)
             {
                 case SingleClipStateNodeView _:
+                    inspectorModel.Preview = SingleClipPreview;
                     model.InspectorView.SetInspector<SingleStateInspector, AnimationStateInspectorModel>
                         (inspectorModel.StateAsset, inspectorModel);
                     break;
                 case LinearBlendStateNodeView _:
+                    // In the future we could theoretically send along a preview of the whole state at once rather than
+                    // individual ones.
+                    inspectorModel.Preview = SingleClipPreview;
                     model.InspectorView.SetInspector<LinearBlendStateInspector, AnimationStateInspectorModel>
                         (inspectorModel.StateAsset, inspectorModel);
                     break;

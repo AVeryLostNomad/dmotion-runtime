@@ -24,7 +24,7 @@ namespace DMotion.Editor
         private bool isDraggingTimeMarker = false;
         private int eventMarkerDragIndex = -1;
         
-        private readonly SingleClipPreview preview;
+        private SingleClipPreview preview;
         private readonly SerializedProperty property;
         private readonly AnimationClipAsset clipAsset;
 
@@ -99,9 +99,18 @@ namespace DMotion.Editor
             this.clipAsset = clipAsset;
             this.preview = preview;
             this.property = property;
-            timeMarkerTime = preview.SampleNormalizedTime;
+            if (preview != null)
+                timeMarkerTime = preview.SampleNormalizedTime;
         }
 
+        public void SetPreview(SingleClipPreview p)
+        {
+            this.preview = p;
+            if (p != null)
+                timeMarkerTime = p.SampleNormalizedTime;
+            else
+                timeMarkerTime = 0f;
+        }
 
         public void OnInspectorGUI(Rect area)
         {
@@ -123,6 +132,8 @@ namespace DMotion.Editor
 
             using (var c = new EditorGUI.ChangeCheckScope())
             {
+                if (clipAsset == null || clipAsset.Events == null)
+                    return;
                 var cachedEvents = clipAsset.Events.ToList();
                 GUI.color = Color.white;
                 EditorGUILayout.PropertyField(property, GUIContent.none, true);
@@ -140,7 +151,8 @@ namespace DMotion.Editor
                             if (!Mathf.Approximately(cachedEvent.NormalizedTime, currentEvent.NormalizedTime))
                             {
                                 eventMarkerDragIndex = i;
-                                preview.SampleNormalizedTime = currentEvent.NormalizedTime;
+                                if (preview != null)
+                                    preview.SampleNormalizedTime = currentEvent.NormalizedTime;
                                 break;
                             }
                         }
@@ -253,14 +265,16 @@ namespace DMotion.Editor
             {
                 var time = PixelsToNormalizedTime(currentEvent.mousePosition.x, timeMarker.VisualRect, dragArea);
                 timeMarkerTime = time;
-                preview.SampleNormalizedTime = time;
+                if (preview != null)
+                    preview.SampleNormalizedTime = time;
                 currentEvent.Use();
             }
             else if (eventMarkerDragIndex >= 0)
             {
                 var eventMarker = eventMarkers[eventMarkerDragIndex];
                 var time = PixelsToNormalizedTime(currentEvent.mousePosition.x, eventMarker.VisualRect, dragArea);
-                preview.SampleNormalizedTime = time;
+                if (preview != null)
+                    preview.SampleNormalizedTime = time;
 
                 clipAsset.Events[eventMarkerDragIndex].NormalizedTime = time;
 
@@ -295,6 +309,8 @@ namespace DMotion.Editor
                 GUI.DrawTexture(timeMarker.VisualRect, WhiteTex);
             }
             {
+                if (clipAsset == null || clipAsset.Events == null)
+                    return;
                 eventMarkers.Clear();
                 for (var i = 0; i < clipAsset.Events.Length; i++)
                 {
