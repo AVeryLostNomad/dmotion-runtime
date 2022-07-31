@@ -4,9 +4,14 @@ using Latios.Authoring;
 using Latios.Kinemation;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Assertions;
 
-namespace DOTSAnimation.Authoring
+namespace DMotion.Authoring
 {
+    public static class StateMachineEditorConstants
+    {
+        public const string DMotionPath = "DMotion";
+    }
     public class AnimationStateMachineAuthoring : MonoBehaviour, IConvertGameObjectToEntity, IRequestBlobAssets
     {
         public GameObject Owner;
@@ -33,7 +38,6 @@ namespace DOTSAnimation.Authoring
                 ClipEventsBlob = clipEventsBlob,
                 CurrentState = AnimationState.Null,
                 NextState = AnimationState.Null,
-                CurrentTransition = StateTransition.Null,
                 Weight = 1
             };
 
@@ -45,23 +49,32 @@ namespace DOTSAnimation.Authoring
             {
                 dstManager.GetOrCreateBuffer<RaisedAnimationEvent>(entity);
             }
-            
-            var boolParameters = dstManager.AddBuffer<BoolParameter>(entity);
-            for (ushort i = 0; i < StateMachineAsset.BoolParameters.Count; i++)
+
+            dstManager.AddBuffer<BoolParameter>(entity);
+            dstManager.AddBuffer<BlendParameter>(entity);
+            foreach (var p in StateMachineAsset.Parameters)
             {
-                boolParameters.Add(new BoolParameter()
+                switch (p)
                 {
-                    Hash = StateMachineAsset.BoolParameters[i].Hash,
-                    Value = false
-                });
-            }
-            var floatParameters = dstManager.AddBuffer<BlendParameter>(entity);
-            for (ushort i = 0; i < StateMachineAsset.FloatParameters.Count; i++)
-            {
-                floatParameters.Add(new BlendParameter()
-                {
-                    Hash = StateMachineAsset.FloatParameters[i].Hash,
-                });
+                    case BoolParameterAsset _:
+                        var boolParameters = dstManager.GetBuffer<BoolParameter>(entity);
+                        boolParameters.Add(new BoolParameter()
+                        {
+                            Name = p.name,
+                            Hash = p.Hash,
+                        });
+                        break;
+                    case FloatParameterAsset _:
+                        var floatParameters = dstManager.GetBuffer<BlendParameter>(entity);
+                        floatParameters.Add(new BlendParameter()
+                        {
+                            Name = p.name,
+                            Hash = p.Hash,
+                        });
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(p));
+                }
             }
 
             dstManager.AddComponentData(entity, PlayOneShotRequest.Null);
@@ -103,12 +116,24 @@ namespace DOTSAnimation.Authoring
 
         public void RequestBlobAssets(Entity entity, EntityManager dstEntityManager, GameObjectConversionSystem conversionSystem)
         {
+            ValidateStateMachine();
             clipsBlobHandle = conversionSystem.RequestClipsBlob(Animator, StateMachineAsset.Clips);
             stateMachineBlobHandle = conversionSystem.RequestStateMachineBlob(Animator.gameObject, new StateMachineBlobBakeData()
             {
                 StateMachineAsset = StateMachineAsset
             });
             clipEventsBlobHandle = conversionSystem.RequestClipEventsBlob(Animator.gameObject, StateMachineAsset.Clips);
+        }
+
+        private void ValidateStateMachine()
+        {
+            foreach (var s in StateMachineAsset.States)
+            {
+                foreach (var c in s.Clips)
+                {
+                    Assert.IsTrue(c != null && c.Clip != null, $"State ({s.name}) in State Machine {StateMachineAsset.name} has invalid clips");
+                }
+            }
         }
     }
 }

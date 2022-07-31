@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace DOTSAnimation
+namespace DMotion
 {
     public enum StateType : byte
     {
@@ -14,6 +14,7 @@ namespace DOTSAnimation
         internal ushort StateIndex;
         internal bool Loop;
         internal float Speed;
+        internal BlobArray<StateOutTransitionGroup> Transitions;
     }
     
     internal struct SingleClipStateBlob

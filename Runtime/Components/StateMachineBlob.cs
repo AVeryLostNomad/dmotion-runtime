@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace DOTSAnimation
+namespace DMotion
 {
     public struct StateMachineBlob
     {
@@ -8,8 +8,5 @@ namespace DOTSAnimation
         internal BlobArray<AnimationStateBlob> States;
         internal BlobArray<SingleClipStateBlob> SingleClipStates;
         internal BlobArray<LinearBlendStateBlob> LinearBlendStates;
-        
-        internal BlobArray<AnimationTransitionGroup> Transitions;
-        internal BlobArray<BoolTransition> BoolTransitions;
     }
 }

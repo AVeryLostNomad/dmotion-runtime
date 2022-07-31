@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
-using DOTSAnimation.Authoring;
+using DMotion.Authoring;
 using UnityEditor;
 using UnityEngine;
 
-namespace DOTSAnimation.Editor
+namespace DMotion.Editor
 {
     [CustomEditor(typeof(AnimationClipAsset))]
     internal class AnimationClipAssetEditor : UnityEditor.Editor
@@ -32,26 +32,32 @@ namespace DOTSAnimation.Editor
 
         public override void OnInspectorGUI()
         {
-            using (new EditorGUILayout.HorizontalScope())
+            EditorGUILayout.HelpBox("You should use the Visual Editor to edit this asset.", MessageType.Warning);
+            using (new EditorGUI.DisabledScope(true))
             {
-                EditorGUILayout.LabelField("Preview Object");
-                preview.GameObject = (GameObject)EditorGUILayout.ObjectField(preview.GameObject, typeof(GameObject), true);
-            }
-            using (var c = new EditorGUI.ChangeCheckScope())
-            {
-                EditorGUILayout.PropertyField(clipProperty, true);
-                preview.Clip = ClipTarget.Clip;
-
-                if (c.changed)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    serializedObject.ApplyModifiedProperties();
-                    serializedObject.Update();
+                    EditorGUILayout.LabelField("Preview Object");
+                    preview.GameObject =
+                        (GameObject)EditorGUILayout.ObjectField(preview.GameObject, typeof(GameObject), true);
                 }
-                
-                var drawerRect = EditorGUILayout.GetControlRect();
-                //TODO: This magic number is a right padding. Not why this is needed or of a better alternative
-                drawerRect.xMax -= 60;
-                eventsPropertyDrawer.OnInspectorGUI(drawerRect);
+
+                using (var c = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.PropertyField(clipProperty, true);
+                    preview.Clip = ClipTarget.Clip;
+
+                    if (c.changed)
+                    {
+                        serializedObject.ApplyModifiedProperties();
+                        serializedObject.Update();
+                    }
+
+                    var drawerRect = EditorGUILayout.GetControlRect();
+                    //TODO: This magic number is a right padding. Not why this is needed or of a better alternative
+                    drawerRect.xMax -= 60;
+                    eventsPropertyDrawer.OnInspectorGUI(drawerRect);
+                }
             }
         }
 
@@ -62,7 +68,10 @@ namespace DOTSAnimation.Editor
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
-            preview.DrawPreview(r, background);
+            if (AnimationMode.InAnimationMode())
+            {
+                preview?.DrawPreview(r, background);
+            }
         }
     }
 }

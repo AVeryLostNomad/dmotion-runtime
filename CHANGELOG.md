@@ -6,14 +6,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.5.3-preview-1] – 2022-7-21
+## [0.3.0] – 2022-7-28
+
+First version with a complete State Machine Visual Editor, some small BlobAsset changes
+
+### Added
+
+- State Machines visual editor
+- Event Editor
+- Clip Previews
+
+### Changed
+
+- StateMachineBlobAsset has more nested arrays now, making it easier to use (performance shouldn't be impacted since nested arrays are allocated inline in BlobAssets)
+
+## [0.2.0] – 2022-7-24
 
 This marks the first version ready for public use and with somewhat stable API.
 
 ### Added
 
 - State Machines can now be built with Scriptable Objects
-- Custom Animation clip and evens editor with preview objects
 - Root Motion Modes
     - Disabled: No root motion
     - Enabled Automatic: Root motion is automatically applied to the root object
@@ -27,7 +40,7 @@ This marks the first version ready for public use and with somewhat stable API.
 - AnimationEvents implementation now use DynamicBuffers
 - API cleanup pass (implementation details made internal)
 
-## [0.0.1] – 2022-6-25
+## [0.1.0] – 2022-6-25
 
 Very first version for community feedback
 

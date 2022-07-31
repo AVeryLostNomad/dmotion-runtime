@@ -1,9 +1,8 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace DOTSAnimation.Authoring
+namespace DMotion.Authoring
 {
-    [CreateAssetMenu(menuName = "DOTSAnimation/Parameters/Bool Parameter")]
     public class BoolParameterAsset : AnimationParameterAsset
     {
     }

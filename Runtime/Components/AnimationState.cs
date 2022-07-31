@@ -4,7 +4,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace DOTSAnimation
+namespace DMotion
 {
     [BurstCompile]
     internal struct AnimationState
@@ -16,7 +16,7 @@ namespace DOTSAnimation
         
         internal bool IsValid => StateIndex >= 0;
         internal static AnimationState Null => new AnimationState() { StateIndex = -1 };
-        internal readonly AnimationStateBlob StateBlob => StateMachineBlob.Value.States[StateIndex];
+        internal readonly ref AnimationStateBlob StateBlob => ref StateMachineBlob.Value.States[StateIndex];
         internal readonly StateType Type => StateBlob.Type;
 
         internal readonly ref SingleClipStateBlob AsSingleClip =>

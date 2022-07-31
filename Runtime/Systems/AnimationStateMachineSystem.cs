@@ -10,7 +10,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace DOTSAnimation
+namespace DMotion
 {
     [UpdateInGroup(typeof(TransformSystemGroup))]
     [UpdateBefore(typeof(TRSToLocalToParentSystem))]
